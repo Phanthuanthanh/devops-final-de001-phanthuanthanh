@@ -1,73 +1,77 @@
 # DevOps Final – Đề 001: Quản lý phòng Lab
 
-Bộ mã nguồn khởi đầu cho bài thi **Hackathon DevOps Fundamentals – Cuối kỳ**.
+Bộ mã nguồn hoàn chỉnh cho bài thi **Hackathon DevOps Fundamentals – Cuối kỳ**.
 Ứng dụng hiển thị **danh sách phòng lab** lấy từ MySQL thông qua Spring Boot, trả về **dạng JSON** qua Nginx (reverse proxy).
 
-## Kiến trúc
+---
+
+## 📖 HƯỚNG DẪN THỰC HÀNH & CHỤP ẢNH MINH CHỨNG
+👉 **Xem hướng dẫn chi tiết từng bước từ A đến Z tại:** [HUONG_DAN_CHAY_VA_CHUP_ANH.md](HUONG_DAN_CHAY_VA_CHUP_ANH.md)
+
+---
+
+## Thông tin sinh viên & Triển khai
+
+- **Sinh viên**: Phan Thuận Thành
+- **Mã sinh viên**: B24DTCN169
+- **Lớp**: K24CNTT2
+- **GitHub**: [Phanthuanthanh/devops-final-de001-phanthuanthanh](https://github.com/Phanthuanthanh/devops-final-de001-phanthuanthanh)
+- **Cổng cá nhân (APP_PORT)**: `8169`
+- **Server VPS**: `20.189.122.108`
+- **Địa chỉ ứng dụng**: http://20.189.122.108:8169
+
+---
+
+## Kiến trúc hệ thống
 
 ```
-Trình duyệt ── http://<IP_máy_chủ>:<APP_PORT>
+Trình duyệt ── http://20.189.122.108:8169
     ▼
-[nginx]  nginx:1.27-alpine        GET /*  → app:8080
+[nginx]  nginx:1.27-alpine        GET /*  → app:8080 (chuyển hướng / -> /api/labs)
     ▼
 [app]    Spring Boot 4 (JRE 21)   GET /api/labs → mysql:3306
     ▼
 [mysql]  mysql:8.0                volume mysql_data, KHÔNG public cổng mysql
 ```
 
+---
+
 ## Cấu trúc thư mục
 
-Đổi tên thư mục/repository thành `devops-final-de001-<họ-tên>` (ví dụ `devops-final-de001-nguyenvana`).
-Dấu ★ là phần sinh viên phải làm.
-
 ```
-devops-final-de001-nguyenvana/     ← Mã nguồn Spring Boot 4 (Java 21, Gradle) – CÓ SẴN
+devops-final-de001-phanthuanthanh/
 ├── src/main/java/com/ptit/devops/lab/   ← Controller, Entity, Repository
 ├── src/main/resources/application.properties
 ├── build.gradle                   ← Build ra file build/libs/app.jar
 ├── settings.gradle
-├── Dockerfile                     ← ★ FILE KHUNG: tự hoàn chỉnh phần còn thiếu
-├── .dockerignore                  ← CÓ SẴN
-├── nginx/default.conf             ← ★ FILE KHUNG: tự đổi PORT (tránh trùng nhau)
-├── database/init.sql              ← Bảng labs + 8 bản ghi mẫu – CÓ SẴN
-├── docker-compose.yml             ← ★ FILE KHUNG: mysql có sẵn, điền TODO 1–5
-├── .github/workflows/ci-cd.yml    ← ★ FILE KHUNG: điền TODO 1–6
-├── student.env                    ← ★ ĐIỀN THÔNG TIN SINH VIÊN
-├── screenshots/                   ← ★ Ảnh minh chứng (Phần 5)
-├── submission-content/            ← ★ Toàn bộ tệp minh chứng khi nộp bài
-├── .gitignore                     ← CÓ SẴN
+├── Dockerfile                     ← Multi-stage build (Gradle 8.14 JDK 21 -> JRE 21 non-root)
+├── .dockerignore
+├── nginx/default.conf             ← Nginx reverse proxy
+├── database/init.sql              ← Bảng labs + 8 bản ghi mẫu
+├── docker-compose.yml             ← Cấu hình 3 services (mysql, app, nginx)
+├── .github/workflows/ci-cd.yml    ← Pipeline CI/CD: Build & Test -> Push GHCR -> SSH Deploy
+├── student.env                    ← Thông tin sinh viên và cấu hình môi trường
+├── screenshots/                   ← Chứa 4 ảnh minh chứng theo yêu cầu
+├── submission-content/            ← Chứa file minh chứng nộp bài RAIA
+├── .gitignore
+├── HUONG_DAN_CHAY_VA_CHUP_ANH.md  ← Cẩm nang chi tiết từng thao tác
 └── README.md
 ```
 
-Phần **sinh viên phải làm** (xem đề thi):
+---
 
-| File | Việc cần làm |
-|------|--------------|
-| `student.env` | Điền thông tin sinh viên và thông số triển khai |
-| `Dockerfile` | **Tự viết**: multi-stage build, stage `build` (Gradle + JDK 21) và stage runtime (JRE 21) |
-| `docker-compose.yml` | **Điền các TODO 1–5** (service `mysql` đã có sẵn) |
-| `.github/workflows/ci-cd.yml` | **Điền các TODO 1–6** của pipeline build → push image → deploy |
-| `screenshots/` | `01-actions.png`, `02-ghcr.png`, `03-compose-ps.png`, `04-website.png` |
-
-## API của ứng dụng
-
-| Method | Đường dẫn | Mô tả |
-|--------|-----------|-------|
-| GET | `/api/labs` | Danh sách phòng Lab |
-
-## Biến môi trường mà ứng dụng cần
-
-| Biến | Ý nghĩa |
-|------|---------|
-| `DB_HOST`, `DB_PORT` | Địa chỉ MySQL (mặc định `mysql`, `3306`) |
-| `DB_NAME`, `DB_USER`, `DB_PASSWORD` | Database và tài khoản kết nối |
-| `APP_VERSION` | Phiên bản (truyền vào lúc build image, ví dụ commit SHA) |
-
-## Chạy thử (khi đã có Dockerfile và docker-compose.yml)
+## Các lệnh chạy thử nghiệm
 
 ```bash
+# Khởi động toàn bộ hệ thống bằng Docker Compose
 docker compose --env-file student.env up -d --build
+
+# Kiểm tra trạng thái containers
 docker compose --env-file student.env ps
-curl http://localhost:<APP_PORT>/api/labs
+
+# Kiểm tra API
+curl http://localhost:8169/api/labs
+
+# Dọn dẹp
 docker compose --env-file student.env down
 ```
